@@ -18,6 +18,7 @@ public class Test {
 		System.out.println("D:\\DATA\\import\\lcd\\CELL\\4600\\T36A2\\T36A20E0\\"+line.split(" ")[1].substring(line
 				.split(" ")[1]
 				.lastIndexOf("\\")));
+		System.out.println();
 	}
 
 }
