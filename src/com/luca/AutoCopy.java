@@ -89,7 +89,7 @@ class AddIndexFile implements Runnable {
 	public void run() {
 		// TODO Auto-generated method stub
 		add(AutoCopy.startTime, AutoCopy.endTime);
-		AutoCopy.addindexfileover = true;
+		AutoCopy.addindexfileoverthreadcount++;
 	}
 }
 
@@ -137,7 +137,8 @@ class ReadIndex implements Runnable {
 		File file;
 		String line;
 		// index還沒讀完或者indexlist中還有內容則繼續
-		while (!AutoCopy.addindexfileover || AutoCopy.indexList.size() > 0) {
+		while (AutoCopy.addindexfileoverthreadcount < 1
+				|| AutoCopy.indexList.size() > 0) {
 			file = getIndexFile();
 			if (file == null)
 				continue;
@@ -175,7 +176,7 @@ class ReadIndex implements Runnable {
 		}
 
 		// index全部讀完並且indexlist為空時設置標識符
-		AutoCopy.addpanelover = true;
+		AutoCopy.addpaneloverThreadCount++;
 
 	}
 }
@@ -190,8 +191,9 @@ public class AutoCopy implements Runnable {
 
 	static List indexList = new ArrayList();// 索引文件list
 	static List panelList = new ArrayList();// 需要複製方文件路徑list
-	static boolean addindexfileover = false;// 索引文件是否全部導入到list中的標識符
-	static boolean addpanelover = false;// 要複製Panel路徑是否全部導入到list中的標識符
+	static int addindexfileoverthreadcount = 0;// 索引導入線程結束個數
+	static int addpaneloverThreadCount = 0;// panel導入線程結束個數
+	static int copyovercount = 0;//複製線程結束個數
 	static Calendar startTime;// 開始時間
 	static Calendar endTime;// 結束時間
 	static int sum = 0;// 計算總共複製了多少個
@@ -218,7 +220,7 @@ public class AutoCopy implements Runnable {
 	 */
 	public void run() {
 		// TODO Auto-generated method stub
-		while (!addpanelover || panelList.size() > 0) {
+		while (addpaneloverThreadCount < 3 || panelList.size() > 0) {
 			String sourcepathString;
 			sourcepathString = getPanel();
 			if (sourcepathString != null) {
@@ -238,9 +240,14 @@ public class AutoCopy implements Runnable {
 				}
 			}
 		}
-
-		System.out.println("複製" + sum + "個文件");
-		System.out.println("耗時：" + (System.currentTimeMillis() - time) / 1000);
+		
+		AutoCopy.copyovercount++;//每結束一個copy進度則自增
+		//5個copy進程全部時打印耗費時間
+		if (AutoCopy.copyovercount == 5) {
+			System.out.println("複製" + sum + "個文件");
+			System.out.println("耗時：" + (System.currentTimeMillis() - time)
+					/ 1000);
+		}
 	}
 
 	/**
@@ -274,21 +281,22 @@ public class AutoCopy implements Runnable {
 				+ endTime.get(Calendar.MINUTE) + ":"
 				+ endTime.get(Calendar.SECOND));
 		// 開始添加INDEX文件到indexList中,這里只能開一個線程，否則內容會重複
-		new Thread(new AddIndexFile(),"AddIndexFileThread").start();;
-		
+		new Thread(new AddIndexFile(), "AddIndexFileThread").start();
+		;
+
 		// 建立3個線程讀取INDEX
 		ReadIndex readIndex = new ReadIndex();
-		new Thread(readIndex,"ReadIndexFileThread1").start();
-		new Thread(readIndex,"ReadIndexFileThread2").start();
-		new Thread(readIndex,"ReadIndexFileThread3").start();
+		new Thread(readIndex, "ReadIndexFileThread1").start();
+		new Thread(readIndex, "ReadIndexFileThread2").start();
+		new Thread(readIndex, "ReadIndexFileThread3").start();
 
 		// 建立5個線程種複製文件
 		AutoCopy aCopy = new AutoCopy();
-		new Thread(aCopy,"AutoCopyThread1").start();
-		new Thread(aCopy,"AutoCopyThread2").start();
-		new Thread(aCopy,"AutoCopyThread3").start();
-		new Thread(aCopy,"AutoCopyThread4").start();
-		new Thread(aCopy,"AutoCopyThread5").start();
+		new Thread(aCopy, "AutoCopyThread1").start();
+		new Thread(aCopy, "AutoCopyThread2").start();
+		new Thread(aCopy, "AutoCopyThread3").start();
+		new Thread(aCopy, "AutoCopyThread4").start();
+		new Thread(aCopy, "AutoCopyThread5").start();
 
 	}
 
