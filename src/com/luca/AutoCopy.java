@@ -122,6 +122,7 @@ public class AutoCopy {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		long time=System.currentTimeMillis();
 		int min = 0;
 		if (args.length != 0 && args[0].matches("\\d+"))
 			min = Integer.parseInt(args[0]);
@@ -149,5 +150,6 @@ public class AutoCopy {
 			System.out.println("一共複製" + sum + "個文件");
 		else
 			System.out.println("一個文件都沒有複製成功");
+		System.out.println("耗時："+(System.currentTimeMillis()-time)/1000);
 	}
 }
