@@ -3,6 +3,7 @@
  */
 package com.luca;
 
+import java.io.File;
 import java.util.Calendar;
 
 /**
@@ -16,7 +17,10 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-	System.out.println(new String("abcd.txtx").toUpperCase().endsWith(".TXT"));
+		String sourcepathString = "Y:\\LCD\\INDEX\\20160819\\4600\\abc.txt";
+	
+		System.out.println(sourcepathString
+		.substring(sourcepathString
+				.lastIndexOf("\\")+1));
 	}
-
 }

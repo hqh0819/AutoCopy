@@ -3,7 +3,11 @@
  */
 package com.luca;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -86,8 +90,18 @@ class addIndexFile implements Runnable {
 class ReadIndex implements Runnable {
 
 	synchronized void addPanel(String path) {
-		
+
 		AutoCopy.panelList.add(path);
+
+	}
+
+	synchronized File getIndexFile() {
+		File file = null;
+		if (AutoCopy.indexList.size() > 0) {
+			file = (File) AutoCopy.indexList.get(0);
+			AutoCopy.indexList.remove(0);
+		}
+		return file;
 
 	}
 
@@ -99,8 +113,40 @@ class ReadIndex implements Runnable {
 	public void run() {
 		// TODO Auto-generated method stub
 		// index還沒讀完或者indexlist中還有內容則繼續
+		File file;
+		String line;
 		while (!AutoCopy.addindexfileover || AutoCopy.indexList.size() > 0) {
+			file = getIndexFile();
+			Calendar time = Calendar.getInstance();
+			int dateint = Integer.parseInt(file.getName().split("\\\\{1}")[3]);
+			int hourminsec;
+			time.set(dateint / 10000, dateint % 10000 / 100 - 1, dateint % 100);
+			if (file != null) {
 
+				try {
+					BufferedReader bu = new BufferedReader(
+							new InputStreamReader(new FileInputStream(file)));
+					while ((line = bu.readLine()) != null) {
+
+						if (line.indexOf(" ") != -1
+								&& line.split(" ")[0].matches("\\d+")) {
+							hourminsec = Integer.parseInt(line.split(" ")[0]);
+							time.set(Calendar.HOUR_OF_DAY, hourminsec / 10000);
+							time.set(Calendar.MINUTE, hourminsec % 10000 / 100);
+							time.set(Calendar.SECOND, hourminsec % 100);
+							if (time.after(AutoCopy.startTime)
+									&& time.before(AutoCopy.endTime))
+								addPanel("Y:\\" + line.split(" ")[1]);
+
+						}
+					}
+					bu.close();
+				} catch (IOException e) {
+					System.out.println("讀取文件錯誤：" + file.getPath()
+							+ File.separator + file.getName());
+				}
+
+			}
 		}
 		// index全部讀完並且indexlist為空時設置標識符
 		AutoCopy.addpanelover = true;
@@ -122,6 +168,15 @@ public class AutoCopy implements Runnable {
 	static Calendar endTime;
 	static int sum = 0;
 
+	synchronized String getPanel() {
+		String string = null;
+		if (panelList.size() > 0) {
+			string = (String) panelList.get(0);
+			panelList.remove(0);
+		}
+		return string;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -129,7 +184,28 @@ public class AutoCopy implements Runnable {
 	 */
 	public void run() {
 		// TODO Auto-generated method stub
+		while (!addpanelover || panelList.size() > 0) {
+			String sourcepathString;
+			sourcepathString = getPanel();
+			if (sourcepathString != null) {
+				try {
+					// 複製文件
 
+					FileTool.copyFile(
+							sourcepathString,
+							"D:\\DATA\\import\\lcd\\CELL\\4600\\T36A2\\T36A20E0"
+									+ sourcepathString
+											.substring(sourcepathString
+													.lastIndexOf("\\") + 1),
+							false);
+					sum++;
+				} catch (Exception e) {
+					System.out.println("Copy文件錯誤：" + sourcepathString);
+				}
+			}
+		}
+
+		System.out.println("複製" + sum + "個文件");
 	}
 
 	/**
@@ -159,7 +235,21 @@ public class AutoCopy implements Runnable {
 		// 開始添加INDEX文件到indexList中,這里只能開一個線程，否則內容會重複
 		Thread addindexfileThread = new Thread(new addIndexFile());
 		addindexfileThread.start();
+		// 建立兩個線程讀取INDEX
+		ReadIndex readIndex = new ReadIndex();
+		Thread readindexThread1 = new Thread(readIndex);
+		Thread readindexThread2 = new Thread(readIndex);
+		readindexThread1.start();
+		readindexThread2.start();
 
+		// 建立三個那種複製文件
+		AutoCopy aCopy = new AutoCopy();
+		Thread autocopyThread1 = new Thread(aCopy);
+		Thread autocopyThread2 = new Thread(aCopy);
+		Thread autocopyThread3 = new Thread(aCopy);
+		autocopyThread1.start();
+		autocopyThread2.start();
+		autocopyThread3.start();
 	}
 
 }
