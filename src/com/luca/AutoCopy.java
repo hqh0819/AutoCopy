@@ -117,41 +117,48 @@ class ReadIndex implements Runnable {
 		String line;
 		while (!AutoCopy.addindexfileover || AutoCopy.indexList.size() > 0) {
 			file = getIndexFile();
-			Calendar time = Calendar.getInstance();
-			int dateint = Integer.parseInt(file.getName().split("\\\\{1}")[3]);
-			int hourminsec;
-			time.set(dateint / 10000, dateint % 10000 / 100 - 1, dateint % 100);
-			if (file != null) {
+			if (file==null)continue;
+				Calendar time = Calendar.getInstance();
+				int dateint = Integer.parseInt(file.getAbsolutePath().split(
+						"\\\\{1}")[3]);
+				int hourminsec;
+				time.set(dateint / 10000, dateint % 10000 / 100 - 1,
+						dateint % 100);
+				if (file != null) {
 
-				try {
-					BufferedReader bu = new BufferedReader(
-							new InputStreamReader(new FileInputStream(file)));
-					while ((line = bu.readLine()) != null) {
+					try {
+						BufferedReader bu = new BufferedReader(
+								new InputStreamReader(new FileInputStream(file)));
+						while ((line = bu.readLine()) != null) {
 
-						if (line.indexOf(" ") != -1
-								&& line.split(" ")[0].matches("\\d+")) {
-							hourminsec = Integer.parseInt(line.split(" ")[0]);
-							time.set(Calendar.HOUR_OF_DAY, hourminsec / 10000);
-							time.set(Calendar.MINUTE, hourminsec % 10000 / 100);
-							time.set(Calendar.SECOND, hourminsec % 100);
-							if (time.after(AutoCopy.startTime)
-									&& time.before(AutoCopy.endTime))
-								addPanel("Y:\\" + line.split(" ")[1]);
+							if (line.indexOf(" ") != -1
+									&& line.split(" ")[0].matches("\\d+")) {
+								hourminsec = Integer
+										.parseInt(line.split(" ")[0]);
+								time.set(Calendar.HOUR_OF_DAY,
+										hourminsec / 10000);
+								time.set(Calendar.MINUTE,
+										hourminsec % 10000 / 100);
+								time.set(Calendar.SECOND, hourminsec % 100);
+								if (time.after(AutoCopy.startTime)
+										&& time.before(AutoCopy.endTime))
+									addPanel("Y:\\" + line.split(" ")[1]);
 
+							}
 						}
+						bu.close();
+					} catch (IOException e) {
+						System.out.println("讀取文件錯誤：" + file.getPath()
+								+ File.separator + file.getName());
 					}
-					bu.close();
-				} catch (IOException e) {
-					System.out.println("讀取文件錯誤：" + file.getPath()
-							+ File.separator + file.getName());
-				}
 
+				}
 			}
-		}
+		
 		// index全部讀完並且indexlist為空時設置標識符
 		AutoCopy.addpanelover = true;
+	
 	}
-
 }
 
 /**
@@ -167,6 +174,7 @@ public class AutoCopy implements Runnable {
 	static Calendar startTime;
 	static Calendar endTime;
 	static int sum = 0;
+	static long time;
 
 	synchronized String getPanel() {
 		String string = null;
@@ -193,7 +201,7 @@ public class AutoCopy implements Runnable {
 
 					FileTool.copyFile(
 							sourcepathString,
-							"D:\\DATA\\import\\lcd\\CELL\\4600\\T36A2\\T36A20E0"
+							"D:\\DATA\\import\\lcd\\CELL\\4600\\T36A2\\T36A20E1\\"
 									+ sourcepathString
 											.substring(sourcepathString
 													.lastIndexOf("\\") + 1),
@@ -206,6 +214,7 @@ public class AutoCopy implements Runnable {
 		}
 
 		System.out.println("複製" + sum + "個文件");
+		System.out.println("耗時："+(System.currentTimeMillis()-time)/1000);
 	}
 
 	/**
@@ -216,7 +225,7 @@ public class AutoCopy implements Runnable {
 		int min = 0;
 		if (args.length != 0 && args[0].matches("\\d+"))
 			min = Integer.parseInt(args[0]);
-
+time=System.currentTimeMillis();
 		startTime = Calendar.getInstance();
 		endTime = Calendar.getInstance();
 		startTime.add(Calendar.MINUTE, -1 * (min > 0 ? min : 20));
