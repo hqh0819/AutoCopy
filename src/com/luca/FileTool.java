@@ -32,7 +32,7 @@ public class FileTool {
 			throws IOException {
 		//目標文件存在并選擇了不覆蓋則跳過
 		if (targetFile.isFile() && !overWriteFile)return;
-		
+		targetFile.getParentFile().mkdirs();
 		BufferedInputStream inBuff = null;
 		BufferedOutputStream outBuff = null;
 		try {
