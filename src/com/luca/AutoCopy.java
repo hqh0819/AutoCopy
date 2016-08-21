@@ -244,9 +244,9 @@ public class AutoCopy implements Runnable {
 		AutoCopy.copyovercount++;//每結束一個copy進度則自增
 		//5個copy進程全部時打印耗費時間
 		if (AutoCopy.copyovercount == 5) {
-			System.out.println("複製" + sum + "個文件");
+			System.out.print("複製" + sum + "個文件。");
 			System.out.println("耗時：" + (System.currentTimeMillis() - time)
-					/ 1000);
+					/ 1000+" 秒");
 		}
 	}
 

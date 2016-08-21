@@ -43,7 +43,7 @@ public class FileTool {
 			outBuff = new BufferedOutputStream(new FileOutputStream(targetFile));
 
 			// 缓冲数组
-			byte[] b = new byte[1024 * 5];
+			byte[] b = new byte[1024 *5];
 			int len;
 			while ((len = inBuff.read(b)) != -1) {
 				outBuff.write(b, 0, len);
