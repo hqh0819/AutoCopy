@@ -13,6 +13,12 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+/**
+ * 從路徑中獲取全部索引文件 這個類只能用一個線程來進行，否則list中會重複INDEX文件
+ * 
+ * @author qiheng.hu
+ * @date 2016年8月21日
+ */
 class AddIndexFile implements Runnable {
 
 	static void add(Calendar startTime, Calendar endTime) {
@@ -87,14 +93,29 @@ class AddIndexFile implements Runnable {
 	}
 }
 
+/**
+ * 多線程讀取index文件，并判斷裏面的每一行PANEL記錄是否需要複製
+ * 
+ * @author qiheng.hu
+ * @date 2016年8月21日
+ */
 class ReadIndex implements Runnable {
-
+	/**
+	 * 將需要複製的PANEL添加到panelList中 需要設置線程同步
+	 * 
+	 * @param path
+	 */
 	synchronized void addPanel(String path) {
 
 		AutoCopy.panelList.add(path);
 
 	}
 
+	/**
+	 * 從indexList讀取一個INDEX文件 需要設置線程同步
+	 * 
+	 * @return
+	 */
 	synchronized File getIndexFile() {
 		File file = null;
 		if (AutoCopy.indexList.size() > 0) {
@@ -112,9 +133,10 @@ class ReadIndex implements Runnable {
 	 */
 	public void run() {
 		// TODO Auto-generated method stub
-		// index還沒讀完或者indexlist中還有內容則繼續
+
 		File file;
 		String line;
+		// index還沒讀完或者indexlist中還有內容則繼續
 		while (!AutoCopy.addindexfileover || AutoCopy.indexList.size() > 0) {
 			file = getIndexFile();
 			if (file == null)
@@ -159,20 +181,27 @@ class ReadIndex implements Runnable {
 }
 
 /**
+ * 多線程將panellist中需要複製的文件進行複製操作
+ * 
  * @author QiHeng.Hu
  * @date 2016年8月11日
  */
 public class AutoCopy implements Runnable {
 
-	static List indexList = new ArrayList();
-	static List panelList = new ArrayList();
-	static boolean addindexfileover = false;
-	static boolean addpanelover = false;
-	static Calendar startTime;
-	static Calendar endTime;
-	static int sum = 0;
-	static long time;
+	static List indexList = new ArrayList();// 索引文件list
+	static List panelList = new ArrayList();// 需要複製方文件路徑list
+	static boolean addindexfileover = false;// 索引文件是否全部導入到list中的標識符
+	static boolean addpanelover = false;// 要複製Panel路徑是否全部導入到list中的標識符
+	static Calendar startTime;// 開始時間
+	static Calendar endTime;// 結束時間
+	static int sum = 0;// 計算總共複製了多少個
+	static long time;// 計算耗時
 
+	/**
+	 * 從Panellist中獲得一個需要複製的文件路徑 需要設置線程同步
+	 * 
+	 * @return
+	 */
 	synchronized String getPanel() {
 		String string = null;
 		if (panelList.size() > 0) {
@@ -219,15 +248,19 @@ public class AutoCopy implements Runnable {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		// 從當前時間后退一定時間到當時時間進行複製操作
+
+		// args第一個參數為全數字時為自定義后退時間，單位為分鐘。否則默認倒退30分鐘開始
 		int min = 0;
 		if (args.length != 0 && args[0].matches("\\d+"))
 			min = Integer.parseInt(args[0]);
+
 		time = System.currentTimeMillis();
 		startTime = Calendar.getInstance();
-		startTime .add(Calendar.SECOND, -1);
+		startTime.add(Calendar.SECOND, -1);
 		endTime = Calendar.getInstance();
-		startTime.add(Calendar.MINUTE, -1 * (min > 0 ? min : 20));
-		startTime .add(Calendar.SECOND, 1);
+		startTime.add(Calendar.MINUTE, -1 * (min > 0 ? min : 30));
+		startTime.add(Calendar.SECOND, 1);
 		System.out.println("複製時間段：" + startTime.get(Calendar.YEAR) + "/"
 				+ (1 + startTime.get(Calendar.MONTH)) + "/"
 				+ startTime.get(Calendar.DAY_OF_MONTH) + " "
@@ -241,28 +274,22 @@ public class AutoCopy implements Runnable {
 				+ endTime.get(Calendar.MINUTE) + ":"
 				+ endTime.get(Calendar.SECOND));
 		// 開始添加INDEX文件到indexList中,這里只能開一個線程，否則內容會重複
-		Thread addindexfileThread = new Thread(new AddIndexFile());
-		addindexfileThread.start();
+		new Thread(new AddIndexFile(),"AddIndexFileThread").start();;
+		
 		// 建立3個線程讀取INDEX
 		ReadIndex readIndex = new ReadIndex();
-		Thread readindexThread1 = new Thread(readIndex);
-		Thread readindexThread2 = new Thread(readIndex);
-		Thread readindexThread3 = new Thread(readIndex);
-		readindexThread1.start();
-		readindexThread2.start();
-		readindexThread3.start();
+		new Thread(readIndex,"ReadIndexFileThread1").start();
+		new Thread(readIndex,"ReadIndexFileThread2").start();
+		new Thread(readIndex,"ReadIndexFileThread3").start();
+
 		// 建立5個線程種複製文件
 		AutoCopy aCopy = new AutoCopy();
-		Thread autocopyThread1 = new Thread(aCopy);
-		Thread autocopyThread2 = new Thread(aCopy);
-		Thread autocopyThread3 = new Thread(aCopy);
-		Thread autocopyThread4 = new Thread(aCopy);
-		Thread autocopyThread5 = new Thread(aCopy);
-		autocopyThread1.start();
-		autocopyThread2.start();
-		autocopyThread3.start();
-		autocopyThread4.start();
-		autocopyThread5.start();
+		new Thread(aCopy,"AutoCopyThread1").start();
+		new Thread(aCopy,"AutoCopyThread2").start();
+		new Thread(aCopy,"AutoCopyThread3").start();
+		new Thread(aCopy,"AutoCopyThread4").start();
+		new Thread(aCopy,"AutoCopyThread5").start();
+
 	}
 
 }
