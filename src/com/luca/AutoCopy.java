@@ -13,7 +13,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-class addIndexFile implements Runnable {
+class AddIndexFile implements Runnable {
 
 	static void add(Calendar startTime, Calendar endTime) {
 
@@ -198,7 +198,7 @@ public class AutoCopy implements Runnable {
 
 					FileTool.copyFile(
 							sourcepathString,
-							"D:\\DATA\\import\\lcd\\CELL\\4600\\T36A2\\T36A20E1\\"
+							"D:\\DATA\\import\\lcd\\CELL\\4600\\T36A2\\T36A20E0\\"
 									+ sourcepathString
 											.substring(sourcepathString
 													.lastIndexOf("\\") + 1),
@@ -241,16 +241,17 @@ public class AutoCopy implements Runnable {
 				+ endTime.get(Calendar.MINUTE) + ":"
 				+ endTime.get(Calendar.SECOND));
 		// 開始添加INDEX文件到indexList中,這里只能開一個線程，否則內容會重複
-		Thread addindexfileThread = new Thread(new addIndexFile());
+		Thread addindexfileThread = new Thread(new AddIndexFile());
 		addindexfileThread.start();
-		// 建立兩個線程讀取INDEX
+		// 建立3個線程讀取INDEX
 		ReadIndex readIndex = new ReadIndex();
 		Thread readindexThread1 = new Thread(readIndex);
 		Thread readindexThread2 = new Thread(readIndex);
+		Thread readindexThread3 = new Thread(readIndex);
 		readindexThread1.start();
 		readindexThread2.start();
-
-		// 建立三個那種複製文件
+		readindexThread3.start();
+		// 建立5個線程種複製文件
 		AutoCopy aCopy = new AutoCopy();
 		Thread autocopyThread1 = new Thread(aCopy);
 		Thread autocopyThread2 = new Thread(aCopy);
