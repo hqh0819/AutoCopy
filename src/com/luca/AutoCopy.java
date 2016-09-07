@@ -243,7 +243,7 @@ public class AutoCopy implements Runnable {
 		
 		AutoCopy.copyovercount++;//每結束一個copy進度則自增
 		//5個copy進程全部時打印耗費時間
-		if (AutoCopy.copyovercount == 5) {
+		if (AutoCopy.copyovercount == 10) {
 			System.out.print("複製" + sum + "個文件。");
 			System.out.println("耗時：" + (System.currentTimeMillis() - time)
 					/ 1000+" 秒");
@@ -290,13 +290,18 @@ public class AutoCopy implements Runnable {
 		new Thread(readIndex, "ReadIndexFileThread2").start();
 		new Thread(readIndex, "ReadIndexFileThread3").start();
 
-		// 建立5個線程種複製文件
+		// 建立10個線程種複製文件
 		AutoCopy aCopy = new AutoCopy();
 		new Thread(aCopy, "AutoCopyThread1").start();
 		new Thread(aCopy, "AutoCopyThread2").start();
 		new Thread(aCopy, "AutoCopyThread3").start();
 		new Thread(aCopy, "AutoCopyThread4").start();
 		new Thread(aCopy, "AutoCopyThread5").start();
+		new Thread(aCopy, "AutoCopyThread6").start();
+		new Thread(aCopy, "AutoCopyThread7").start();
+		new Thread(aCopy, "AutoCopyThread8").start();
+		new Thread(aCopy, "AutoCopyThread9").start();
+		new Thread(aCopy, "AutoCopyThread10").start();
 
 	}
 
